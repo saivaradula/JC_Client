@@ -1,0 +1,42 @@
+// Here you can add other styles
+
+.text-right {
+    text-align: right;
+    float: right;
+}
+
+.card {
+    border: 1px solid #afafaf;
+    box-shadow: 1px 0px 0px 1px #ccc;
+}
+
+.card-header {
+    background-color: #bfd2e1 !important;
+    /* color: #fff !important;*/
+}
+
+table.jctable {
+    font-size: 14px;
+}
+
+thead, tbody, tfoot, tr, td, th {
+    vertical-align: middle;
+}
+
+table th {
+    font-weight: 700;
+}
+
+.nav-group-items .nav-item .nav-link {
+    padding-left: 80px !important;
+    font-size: 15px;
+}
+
+label {
+    font-weight: 600;
+}
+
+h6 span {
+    font-weight: 750;
+    text-decoration: underline;
+}
