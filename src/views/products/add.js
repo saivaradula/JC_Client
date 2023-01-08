@@ -7,6 +7,9 @@ import OverlayTrigger from 'react-bootstrap/OverlayTrigger'
 import Tooltip from 'react-bootstrap/Tooltip'
 import Modal from 'react-bootstrap/Modal'
 import WFDSFormComponent from './wfdsForm'
+import WFMouldFormComponent from './wfmouldForm'
+import WFWaxFormComponent from './wfwaxForm'
+import DisplayWorkFlowItems from './displayWFItems'
 
 import {
     CButton,
@@ -84,11 +87,19 @@ const AddProduct = (props) => {
     const [dsItems, setDSItems] = useState(() => [])
     const [ds3ditems, setds3ditems] = useState(() => [])
     const [dscaditems, setdscaditems] = useState(() => [])
+    const [ds3dPrintitems, setds3dPrintitems] = useState(() => [])
+
+    // mould from modal
+    const [mouldData, setMouldData] = useState(() => [])
+
+    // wax form modal data
+    const [waxData, setWaxData] = useState(() => [])
 
     const addDSItemsToWF = async () => {
         let a = workFlowItems;
         if (ds3ditems.is_checked) { dsItems.push(ds3ditems) }
         if (dscaditems.is_checked) { dsItems.push(dscaditems) }
+        if (ds3dPrintitems.is_checked) { dsItems.push(ds3dPrintitems) }
         a.push({ 'name': 'Studio Design', 'items': dsItems })
         setWorkFlowItems(a)
         setDSItems(() => [])
@@ -101,10 +112,45 @@ const AddProduct = (props) => {
 
         setds3ditems([])
         setdscaditems([])
+        setds3dPrintitems([])
 
-        setShowWFDS(false)
+        setShowWS(initialWSValues)
         setWFSelectionModal(false)
+        console.log(formData)
     }
+
+    const addMouldItemToWF = async () => {
+        let a = workFlowItems;
+        a.push({ 'name': 'Mould', 'items': mouldData })
+        setWorkFlowItems(a)
+
+        updateFormData({
+            ...formData,
+            ['workflow']: workFlowItems
+        });
+
+        setMouldData([])
+        setShowWS(initialWSValues)
+        setWFSelectionModal(false)
+        console.log(formData)
+    }
+
+    const addWaxItemToWF = async () => {
+        let a = workFlowItems;
+        a.push({ 'name': 'Wax', 'items': waxData })
+        setWorkFlowItems(a)
+
+        updateFormData({
+            ...formData,
+            ['workflow']: workFlowItems
+        });
+
+        setWaxData([])
+        setShowWS(initialWSValues)
+        setWFSelectionModal(false)
+        console.log(formData)
+    }
+
 
     const goto = (page) => {
         setFormName(page)
@@ -144,7 +190,7 @@ const AddProduct = (props) => {
     const handleChange = (e) => {
         updateFormData({
             ...formData,
-            [e.target.name]: e.target.value.trim()
+            [e.target.name]: e.target.value
         });
     }
 
@@ -177,7 +223,7 @@ const AddProduct = (props) => {
         if (e.target.name === 'is_exists' || e.target.name === 'do_store') {
             a[e.target.name] = e.target.checked
         } else {
-            a[e.target.name] = e.target.value.trim()
+            a[e.target.name] = e.target.value
         }
 
         setProdMoulds[i] = a
@@ -189,17 +235,39 @@ const AddProduct = (props) => {
     }
 
     const [wfSelectionModal, setWFSelectionModal] = useState(false)
-    const [showWFDS, setShowWFDS] = useState(false)
+    const initialWSValues = {
+        ds: false,
+        mould: false
+    }
+    const [showWS, setShowWS] = useState(() => initialWSValues)
 
     const openModal = () => {
         setWFSelectionModal(true)
     }
 
     const selectWF = (event) => {
-        setShowWFDS(false)
+        setShowWS(initialWSValues)
         switch (event.target.value) {
             case 'wf_ds': {
-                setShowWFDS(true)
+                setShowWS({
+                    showWS,
+                    ds: true
+                })
+                break;
+            }
+            case 'wf_mould': {
+                setShowWS({
+                    showWS,
+                    mould: true
+                })
+                break;
+            }
+
+            case 'wf_wax': {
+                setShowWS({
+                    showWS,
+                    wax: true
+                })
                 break;
             }
         }
@@ -208,7 +276,16 @@ const AddProduct = (props) => {
     const wfdsForm = () => {
         return <WFDSFormComponent
             SETDS3DITEMS_C={setds3ditems}
-            SETDSCADITEMS_C={setdscaditems} />
+            SETDSCADITEMS_C={setdscaditems}
+            SETDS3DPRINTITEMS_C={setds3dPrintitems} />
+    }
+
+    const wfMouldForm = () => {
+        return <WFMouldFormComponent SETMOULD_TOWF={setMouldData} />
+    }
+
+    const wfWaxForm = () => {
+        return <WFWaxFormComponent SETWAX_TOWF={setWaxData} />
     }
 
     const WFSelectionModalContent = () => {
@@ -224,7 +301,8 @@ const AddProduct = (props) => {
                     <Modal.Body>
                         <CRow className="mb-4">
                             <div style={{ margin: 'auto' }} className="col-sm-6">
-                                <CFormSelect className="form-control" onChange={(e) => selectWF(e)}>
+                                <CFormSelect className="form-control"
+                                    onChange={(e) => selectWF(e)}>
                                     <option value="">Select</option>
                                     {
                                         wfitems.map((item, index) => (
@@ -236,12 +314,28 @@ const AddProduct = (props) => {
                                 </CFormSelect>
                             </div>
                         </CRow>
-                        {(showWFDS) ? wfdsForm() : <></>}
+                        {(showWS.ds) ? wfdsForm() : <></>}
+                        {(showWS.mould) ? wfMouldForm() : <></>}
+                        {(showWS.wax) ? wfWaxForm() : <></>}
                     </Modal.Body>
                     <Modal.Footer>
                         {
-                            (showWFDS) ?
+                            (showWS.ds) ?
                                 <button onClick={addDSItemsToWF} className="btn btn-primary">
+                                    Add to WorkFlow
+                                </button>
+                                : <></>
+                        }
+                        {
+                            (showWS.mould) ?
+                                <button onClick={addMouldItemToWF} className="btn btn-primary">
+                                    Add to WorkFlow
+                                </button>
+                                : <></>
+                        }
+                        {
+                            (showWS.wax) ?
+                                <button onClick={addWaxItemToWF} className="btn btn-primary">
                                     Add to WorkFlow
                                 </button>
                                 : <></>
@@ -254,7 +348,7 @@ const AddProduct = (props) => {
 
     const handleWaxChanges = (i, e) => {
         let a = waxGroupsNumbers[i];
-        a[e.target.name] = e.target.value.trim()
+        a[e.target.name] = e.target.value
         waxGroupsNumbers[i] = a
         updateFormData({
             ...formData,
@@ -510,7 +604,7 @@ const AddProduct = (props) => {
     }
 
     const handleWFUpdate = (i, event) => {
-
+        console.log(i, event)
     }
 
     const workflow = () => {
@@ -539,65 +633,12 @@ const AddProduct = (props) => {
                         <hr />
                         <CRow className="mb-4">
                             {
-                                workFlowItems.map((f, i) => (
-                                    (f.name === 'Studio Design') ?
-                                        <>
-                                            <CRow key={i} className="mb-3">
-                                                <div className="col-sm-1 text-right">
-                                                    <CFormLabel className="col-form-label">
-                                                        {i + 1}
-                                                    </CFormLabel>
-                                                </div>
-                                                <div className="col-sm-2">
-                                                    <CFormLabel className="col-form-label">
-                                                        {f.name}
-                                                    </CFormLabel>
-                                                </div>
-                                            </CRow>
-                                            {
-                                                f.items.map((item, index) => (
-                                                    <>
-                                                        <CRow className="mb-3">
-                                                            <div className="col-sm-3">&nbsp;</div>
-                                                            <div className="col-sm-2">
-                                                                <CFormLabel className="col-form-label">
-                                                                    {item.service}
-                                                                </CFormLabel>
-                                                            </div>
-                                                            <div className="col-sm-1 text-right">
-                                                                <CFormLabel className="col-form-label">
-                                                                    Price
-                                                                </CFormLabel>
-                                                            </div>
-                                                            <div className="col-sm-1">
-                                                                <CFormInput required
-                                                                    type="text"
-                                                                    className="form-control"
-                                                                    value={item.price}
-                                                                    onChange={(e) => handleWFUpdate(i, e)}
-                                                                />
-                                                            </div>
-                                                            <div className="col-sm-1 text-right">
-                                                                <CFormLabel className="col-form-label">
-                                                                    Notes
-                                                                </CFormLabel>
-                                                            </div>
-                                                            <div className="col-sm-4">
-                                                                <CFormInput required
-                                                                    type="text"
-                                                                    className="form-control"
-                                                                    value={item.notes}
-                                                                    onChange={(e) => handleWFUpdate(i, e)}
-                                                                />
-                                                            </div>
-                                                        </CRow>
-                                                    </>
-                                                ))
-                                            }
-
-                                        </>
-                                        : <></>
-                                ))
+                                workFlowItems.map((f, i) =>
+                                    <DisplayWorkFlowItems key={i}
+                                        wfData={f}
+                                        incr={i}
+                                        handleWFUpdate={handleWFUpdate} />
+                                )
                             }
                         </CRow>
                         <CRow>
@@ -606,7 +647,7 @@ const AddProduct = (props) => {
                                     placement="top"
                                     overlay={
                                         <Tooltip id="button-tooltip-2">
-                                            Collections data
+                                            Add Work flow
                                         </Tooltip>
                                     }
                                 >
@@ -809,7 +850,7 @@ const AddProduct = (props) => {
     return (
         <>
             <CForm
-                // encType="multipart/form-data"
+                encType="multipart/form-data"
                 className="row g-3 needs-validation"
                 noValidate
                 validated={validated}
